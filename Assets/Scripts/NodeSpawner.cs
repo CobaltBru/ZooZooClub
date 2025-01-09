@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +10,7 @@ public class NodeSpawner : MonoBehaviour
     [SerializeField]
     private RectTransform nodeRect;
 
-    void SpawnNode(Vector2Int panelSize)
+    public List<Node> SpawnNode(Vector2Int panelSize)
     {
         List<Node> nodeList = new List<Node>(panelSize.x * panelSize.y);
 
@@ -31,12 +32,17 @@ public class NodeSpawner : MonoBehaviour
                 if (isValid(down, panelSize)) neighborNodes[1] = down;
                 if (isValid(left, panelSize)) neighborNodes[2] = left;
                 if (isValid(up, panelSize)) neighborNodes[3] = up;
+
+                Node node = clone.GetComponent<Node>();
+                node.setup(neighborNodes, point);
+
+                clone.name = $"[{node.point.y}, {node.point.x}]";
+
+                nodeList.Add(node);
             }
         }
+        return nodeList;
         
-
-
-
     }
     bool isValid(Vector2Int point, Vector2Int panelSize)
     {
