@@ -129,8 +129,9 @@ GameObject:
   m_Component:
   - component: {fileID: 446125850}
   - component: {fileID: 446125851}
+  - component: {fileID: 446125852}
   m_Layer: 5
-  m_Name: Node
+  m_Name: Nodes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -167,13 +168,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83df7b35accd50241a8401e51ef3304d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Fruitlist:
-  - {fileID: 5536851881951957701, guid: f866d6059a47e804c8612c279a11ac35, type: 3}
-  - {fileID: 7544775822085499826, guid: e2584edbae665c74e95100a6db46b6de, type: 3}
-  - {fileID: 9127063297071516002, guid: 6f434e56b31ae8a4896e9cd5a43f217c, type: 3}
-  - {fileID: 1582578825422198290, guid: 44cdf93e6ff2f5a44adf6af21ebb3eda, type: 3}
-  - {fileID: 2982186183125455931, guid: 6b83e3308efd10741958f38ce6d3e313, type: 3}
-  - {fileID: 783687540798809193, guid: a8df4bcf5d13e194ea3e02f41a4a3074, type: 3}
+  nodePrefab: {fileID: 3996956862781474352, guid: c03923ecce28db14dbf4ad27deb000f2, type: 3}
+  nodeRect: {fileID: 0}
+--- !u!114 &446125852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446125849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 180, y: 180}
+  m_Spacing: {x: 0, y: 0}
+  m_Constraint: 0
+  m_ConstraintCount: 2
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
