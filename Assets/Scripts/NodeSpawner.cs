@@ -28,13 +28,13 @@ public class NodeSpawner : MonoBehaviour
                 Vector2Int left = point + Vector2Int.left;
                 Vector2Int up = point + Vector2Int.up;
 
-                if (isValid(right, panelSize)) neighborNodes[0] = right;
-                if (isValid(down, panelSize)) neighborNodes[1] = down;
-                if (isValid(left, panelSize)) neighborNodes[2] = left;
-                if (isValid(up, panelSize)) neighborNodes[3] = up;
+                if (IsValid(right, panelSize)) neighborNodes[0] = right;
+                if (IsValid(down, panelSize)) neighborNodes[1] = down;
+                if (IsValid(left, panelSize)) neighborNodes[2] = left;
+                if (IsValid(up, panelSize)) neighborNodes[3] = up;
 
                 Node node = clone.GetComponent<Node>();
-                node.setup(neighborNodes, point);
+                node.Setup(neighborNodes, point);
 
                 clone.name = $"[{node.point.y}, {node.point.x}]";
 
@@ -44,7 +44,7 @@ public class NodeSpawner : MonoBehaviour
         return nodeList;
         
     }
-    bool isValid(Vector2Int point, Vector2Int panelSize)
+    bool IsValid(Vector2Int point, Vector2Int panelSize)
     {
         if (point.x < 0 || point.x >= panelSize.x || point.y < 0 || point.y >= panelSize.y)
             return false;

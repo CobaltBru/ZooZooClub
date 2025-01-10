@@ -13,12 +13,21 @@ public class Block : MonoBehaviour
 
     private Image image;
 
-    public void setup()
+    public Node target;
+
+    public void Setup()
     {
         image = GetComponent<Image>();
         blockType = Random.Range(0, 6);
         image.sprite = fruitsImages[blockType];
     }
+    public void MoveToNode(Node to)
+    {
+        target = to;
+    }
+    public void StartMove()
+    {
 
+    }
 
 }
