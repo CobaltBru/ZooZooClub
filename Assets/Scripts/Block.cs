@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine;
+using Unity.VisualScripting;
 
 public enum Fruits { Apple = 0, Banana, Grape, Kiwi, Orange, Pineapple };
 
@@ -27,7 +28,25 @@ public class Block : MonoBehaviour
     }
     public void StartMove()
     {
-
+        float moveTime = 0.5f;
+        StartCoroutine(DropDownAnimation(target.localPosition, moveTime));
+        target = null;
     }
 
+    private IEnumerator DropDownAnimation(Vector3 end, float time)
+    {
+        float current = 0;
+        float percent = 0;
+        Vector3 start = GetComponent<RectTransform>().localPosition;
+
+        while (percent < 1) 
+        {
+            current += Time.deltaTime;
+            percent = current / time;
+
+            transform.localPosition  = Vector3.Lerp(start,end, percent);
+
+            yield return null;
+        }
+    }
 }
