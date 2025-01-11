@@ -36,7 +36,7 @@ public class Board : MonoBehaviour
     {
         
         BlockPrecess();
-        CheckNodesBlank();
+        //CheckNodesBlank();
     }
     void CheckNodesBlank()
     {

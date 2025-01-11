@@ -3,11 +3,11 @@ using UnityEngine;
 
 public class Node : MonoBehaviour
 {
-    public Vector2 localPosition;
-    public Vector2Int?[] NeighborNodes;
-    public Vector2Int point;
+    public Vector2 localPosition; //노드의 실제 좌표
+    public Vector2Int?[] NeighborNodes; //이웃노드의 인덱스
+    public Vector2Int point; //현재 노드의 인덱스
 
-    public Block placedBlock;
+    public Block placedBlock; //현재 노드에 위치한 블럭의 정보
 
     private Board board;
 
