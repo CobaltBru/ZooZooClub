@@ -1,7 +1,9 @@
 using NUnit.Framework;
 using UnityEngine;
+using System.Collections;
+using UnityEngine.EventSystems;
 
-public class Node : MonoBehaviour
+public class Node : MonoBehaviour, IPointerClickHandler
 {
     public Vector2 localPosition; //³ëµåÀÇ ½ÇÁ¦ ÁÂÇ¥
     public Vector2Int?[] NeighborNodes; //ÀÌ¿ô³ëµåÀÇ ÀÎµ¦½º
@@ -11,6 +13,8 @@ public class Node : MonoBehaviour
 
     private Board board;
 
+    public bool clickAble = false;
+
     public void Setup(Board board, Vector2Int?[] neighborNodes, Vector2Int point)
     {
         this.board = board;
@@ -18,6 +22,7 @@ public class Node : MonoBehaviour
         this.point = point;
 
     }
+    
 
     public Node FindTarget()
     {
@@ -38,6 +43,18 @@ public class Node : MonoBehaviour
         else
         {
             return this;
+        }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if(point.y >= board.panelSize.y/2)
+        {
+            Debug.Log("in");
+        }
+        else
+        {
+            Debug.Log("out");
         }
     }
 }
