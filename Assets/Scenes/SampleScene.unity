@@ -703,8 +703,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 446125850}
   - {fileID: 1758782716}
+  - {fileID: 446125850}
   m_Father: {fileID: 1456767018}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -767,6 +767,7 @@ MonoBehaviour:
   panelSize: {x: 0, y: 0}
   blockPrefab: {fileID: 1290927334715715174, guid: 4fcca00461b1b974aab6e85ab300252a, type: 3}
   blockRect: {fileID: 1758782716}
+  moving: 0
 --- !u!1 &1758782715
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
 
-public class Node : MonoBehaviour, IPointerClickHandler
+public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     public Vector2 localPosition; //³ëµåÀÇ ½ÇÁ¦ ÁÂÇ¥
     public Vector2Int?[] NeighborNodes; //ÀÌ¿ô³ëµåÀÇ ÀÎµ¦½º
@@ -15,6 +15,9 @@ public class Node : MonoBehaviour, IPointerClickHandler
 
     public bool clickAble = false;
 
+    private float dragDistance = 25;
+    private Vector3 touchStart;
+    private Vector3 touchEnd;
     public void Setup(Board board, Vector2Int?[] neighborNodes, Vector2Int point)
     {
         this.board = board;
@@ -46,15 +49,54 @@ public class Node : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public int FindSame(bool[] checker,int type, int way)
     {
-        if(point.y >= board.panelSize.y/2)
+        if(NeighborNodes[way].HasValue == true)
         {
-            Debug.Log("in");
+            Vector2Int np = NeighborNodes[way].Value;
+            Node node = board.NodeList[np.y * board.panelSize.x + np.x];
+            if (placedBlock.blockType == type)
+            {
+                checker[point.y * board.panelSize.x + point.x] = true;
+                return 1 + node.FindSame(checker, type, way);
+            }
+            else return 0;
+        }
+        return 0;
+    }
+
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        
+        board.dragStartNode = point;
+        touchStart = Input.mousePosition;
+        //Debug.Log($"{touchStart}");
+    }
+
+    
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        touchEnd = Input.mousePosition;
+        //Debug.Log($"{touchEnd}");
+        float deltaX = touchEnd.x - touchStart.x;
+        float deltaY = touchEnd.y - touchStart.y;
+
+        if(Mathf.Abs(deltaX) < dragDistance && Mathf.Abs(deltaY) < dragDistance)
+        {
+            board.dragEndNode = point;
+            return;
+        }
+
+        if(Mathf.Abs(deltaX)>Mathf.Abs(deltaY))
+        {
+            if (Mathf.Sign(deltaX) >= 0) board.dragEndNode = NeighborNodes[0] ?? point;
+            else board.dragEndNode = NeighborNodes[2] ?? point;
         }
         else
         {
-            Debug.Log("out");
+            if (Mathf.Sign(deltaY) >= 0) board.dragEndNode = NeighborNodes[3] ?? point;
+            else board.dragEndNode = NeighborNodes[1] ?? point;
         }
     }
 }

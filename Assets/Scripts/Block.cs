@@ -10,12 +10,13 @@ public class Block : MonoBehaviour
     [SerializeField]
     private Sprite[] fruitsImages;
     [SerializeField]
-    int blockType;
+    public int blockType;
 
     private Image image;
 
     public Node target;
 
+    public bool needDestroy = false;
     public void Setup()
     {
         image = GetComponent<Image>();
@@ -28,7 +29,7 @@ public class Block : MonoBehaviour
     }
     public void StartMove()
     {
-        float moveTime = 1f;
+        float moveTime = 0.1f;
         StartCoroutine(DropDownAnimation(target.localPosition, moveTime));
         target = null;
     }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Board : MonoBehaviour
@@ -15,12 +16,18 @@ public class Board : MonoBehaviour
 
     private List<Block> blockList;
 
+    [SerializeField]
+    public bool moving = false;
+    public Vector2Int? dragStartNode;
+    public Vector2Int? dragEndNode;
 
     private void Awake()
     {
         panelSize = new Vector2Int(8, 16);
         NodeList = nodeSpawner.SpawnNode(this, panelSize);
         blockList = new List<Block>();
+        dragStartNode = null;
+        dragEndNode = null;
     }
     private void Start()
     {
@@ -36,7 +43,8 @@ public class Board : MonoBehaviour
     {
         
         BlockPrecess();
-        //CheckNodesBlank();
+        CheckNodesBlank();
+        if(!moving) SwapBlock();
     }
     void CheckNodesBlank()
     {
@@ -95,16 +103,30 @@ public class Board : MonoBehaviour
                 }
                 else // 이동
                 {
+                    moving = true;
                     Move(node, targetNode); //위치정보의 이동
                 }
             }
         }
-
-        foreach(Block block in blockList)
+        
+        foreach (Block block in blockList)
         {
             if(block.target != null)
             {
                 block.StartMove(); //실질적으로 보여지는 이동
+            }
+        }
+        moving = false;
+    }
+    void blockDestroyCheck()
+    {
+        bool[] checker = new bool[panelSize.x * panelSize.y];
+        for(int i = panelSize.y/2+1;i<panelSize.y;i++)
+        {
+            for(int j = 0;j<panelSize.x;j++)
+            {
+                if (checker[i * panelSize.x + j] == true) continue;
+
             }
         }
     }
@@ -116,5 +138,31 @@ public class Board : MonoBehaviour
             to.placedBlock = from.placedBlock;
             from.placedBlock = null;
         }
+    }
+
+    public void Swap(Node from, Node to)
+    {
+        from.placedBlock.MoveToNode(to);
+        to.placedBlock.MoveToNode(from);
+        Block tmp = from.placedBlock;
+        from.placedBlock = to.placedBlock;
+        to.placedBlock = tmp;
+        from.placedBlock.StartMove();
+        to.placedBlock.StartMove();
+    }
+
+    private void SwapBlock()
+    {
+        if (dragStartNode == dragEndNode || dragEndNode == null || dragStartNode == null) return;
+        if (dragStartNode.Value.y < panelSize.y / 2 || dragEndNode.Value.y < panelSize.y / 2) return;
+        moving = true;
+        Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
+        Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
+        Debug.Log($"{from.placedBlock.blockType}, {to.placedBlock.blockType}");
+        Swap(from, to);
+        Debug.Log($"{from.placedBlock.blockType}, {to.placedBlock.blockType}");
+        dragEndNode = null;
+        dragStartNode = null;
+        moving = false;
     }
 }
