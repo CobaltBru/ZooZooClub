@@ -78,29 +78,27 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         
         board.dragStartNode = point;
         touchStart = Input.mousePosition;
-        //Debug.Log($"{touchStart}");
     }
 
     
     public void OnPointerUp(PointerEventData eventData)
     {
         touchEnd = Input.mousePosition;
-        //Debug.Log($"{touchEnd}");
         float deltaX = touchEnd.x - touchStart.x;
         float deltaY = touchEnd.y - touchStart.y;
 
-        if(Mathf.Abs(deltaX) < dragDistance && Mathf.Abs(deltaY) < dragDistance)
+        if(Mathf.Abs(deltaX) < dragDistance && Mathf.Abs(deltaY) < dragDistance) //무효
         {
             board.dragEndNode = point;
             return;
         }
 
-        if(Mathf.Abs(deltaX)>Mathf.Abs(deltaY))
+        if(Mathf.Abs(deltaX)>Mathf.Abs(deltaY)) //수평이동판정
         {
             if (Mathf.Sign(deltaX) >= 0) board.dragEndNode = NeighborNodes[0] ?? point;
             else board.dragEndNode = NeighborNodes[2] ?? point;
         }
-        else
+        else //수직이동판정
         {
             if (Mathf.Sign(deltaY) >= 0) board.dragEndNode = NeighborNodes[3] ?? point;
             else board.dragEndNode = NeighborNodes[1] ?? point;
