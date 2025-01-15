@@ -120,13 +120,24 @@ public class Board : MonoBehaviour
     }
     void blockDestroyCheck()
     {
-        bool[] checker = new bool[panelSize.x * panelSize.y];
-        for(int i = panelSize.y/2+1;i<panelSize.y;i++)
+        bool[] rowchecker = new bool[panelSize.x * panelSize.y];
+        bool[] colchecker = new bool[panelSize.x * panelSize.y];
+        for (int i = panelSize.y/2;i<panelSize.y;i++)
         {
             for(int j = 0;j<panelSize.x;j++)
             {
-                if (checker[i * panelSize.x + j] == true) continue;
-
+                Node currentNode = NodeList[i * panelSize.x + j];
+                if (rowchecker[i * panelSize.x + j] == false)
+                {
+                    rowchecker[i * panelSize.x + j] = true;
+                    currentNode.rowSameCount = currentNode.FindSame(ref rowchecker, currentNode.placedBlock.blockType, 0,1);
+                }
+                if(colchecker[i * panelSize.x + j] == false)
+                {
+                    colchecker[i * panelSize.x + j] = true;
+                    currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1);
+                }
+                Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
             }
         }
     }
@@ -164,5 +175,6 @@ public class Board : MonoBehaviour
         dragEndNode = null;
         dragStartNode = null;
         moving = false;
+        blockDestroyCheck();
     }
 }

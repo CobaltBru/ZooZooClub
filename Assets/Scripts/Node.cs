@@ -18,6 +18,9 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private float dragDistance = 25;
     private Vector3 touchStart;
     private Vector3 touchEnd;
+
+    public int rowSameCount = 0;
+    public int colSameCount = 0;
     public void Setup(Board board, Vector2Int?[] neighborNodes, Vector2Int point)
     {
         this.board = board;
@@ -49,20 +52,24 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
     }
 
-    public int FindSame(bool[] checker,int type, int way)
+    public int FindSame(ref bool[] checker,int type, int way, int counter)
     {
+        if (way == 0) rowSameCount = counter;
+        else if(way == 1) colSameCount = counter;
+
         if(NeighborNodes[way].HasValue == true)
         {
             Vector2Int np = NeighborNodes[way].Value;
             Node node = board.NodeList[np.y * board.panelSize.x + np.x];
-            if (placedBlock.blockType == type)
+            if (node.placedBlock.blockType == type)
             {
-                checker[point.y * board.panelSize.x + point.x] = true;
-                return 1 + node.FindSame(checker, type, way);
+                checker[node.point.y * board.panelSize.x + node.point.x] = true;
+                if (way == 0 || way == 2) return rowSameCount = node.FindSame(ref checker, type, way, counter + 1);
+                if (way == 1 || way == 3) return colSameCount = node.FindSame(ref checker, type, way, counter + 1);
             }
-            else return 0;
+            else return counter;
         }
-        return 0;
+        return counter;
     }
 
 
