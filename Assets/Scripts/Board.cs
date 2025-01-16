@@ -140,6 +140,15 @@ public class Board : MonoBehaviour
                 Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
             }
         }
+
+        for (int i = panelSize.y / 2; i < panelSize.y; i++)
+        {
+            for (int j = 0; j < panelSize.x; j++)
+            {
+
+            }
+        }
+
     }
     public void Move(Node from, Node to)
     {
