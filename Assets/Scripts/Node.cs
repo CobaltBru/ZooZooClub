@@ -104,4 +104,10 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             else board.dragEndNode = NeighborNodes[1] ?? point;
         }
     }
+    public void DestroyBlockObject()
+    {
+        GameObject obj = placedBlock.GetComponent<GameObject>();
+        Destroy(obj);
+        placedBlock = null;
+    }
 }

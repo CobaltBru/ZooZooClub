@@ -21,6 +21,9 @@ public class Board : MonoBehaviour
     public Vector2Int? dragStartNode;
     public Vector2Int? dragEndNode;
 
+    public Vector2Int currentMoveBlock1;
+    public Vector2Int currentMoveBlock2;
+
     private void Awake()
     {
         panelSize = new Vector2Int(8, 16);
@@ -141,14 +144,37 @@ public class Board : MonoBehaviour
             }
         }
 
+        
+
+    }
+
+    private void DestroyBlocks()
+    {
+        Queue<Node> queue = new Queue<Node>();
+        Vector2Int? itemPos = null;
         for (int i = panelSize.y / 2; i < panelSize.y; i++)
         {
             for (int j = 0; j < panelSize.x; j++)
             {
+                Node currentNode = NodeList[i * panelSize.x + j];
+                queue.Enqueue(currentNode);
+                if(currentNode.rowSameCount >=3)
+                {
+                    for (int x = j + 1; x < j + currentNode.rowSameCount; x++) 
+                    {
+
+                    }
+                }
+                if (currentNode.colSameCount >= 3)
+                {
+                    for (int y = i + 1; y < i + currentNode.colSameCount; y++) 
+                    {
+
+                    }
+                }
 
             }
         }
-
     }
     public void Move(Node from, Node to)
     {
@@ -173,17 +199,27 @@ public class Board : MonoBehaviour
 
     private void SwapBlock()
     {
+        //드래그가 짧거나, 드래그한 블럭이 없거나, 범위 밖이면 return
         if (dragStartNode == dragEndNode || dragEndNode == null || dragStartNode == null) return;
         if (dragStartNode.Value.y < panelSize.y / 2 || dragEndNode.Value.y < panelSize.y / 2) return;
+        //움직이는중 마킹
         moving = true;
+        //시작, 끝 블럭 확인
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
-        Debug.Log($"{from.placedBlock.blockType}, {to.placedBlock.blockType}");
+        //현재 스왑한 블럭 저장
+        currentMoveBlock1 = dragStartNode.Value;
+        currentMoveBlock2 = dragEndNode.Value;
+
+        //스왑
         Swap(from, to);
-        Debug.Log($"{from.placedBlock.blockType}, {to.placedBlock.blockType}");
+        //Swap 후 제거할 블럭이 생겼는지 체크
+        blockDestroyCheck();
+
+        //초기화
         dragEndNode = null;
         dragStartNode = null;
         moving = false;
-        blockDestroyCheck();
+        
     }
 }
