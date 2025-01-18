@@ -29,7 +29,7 @@ public class Block : MonoBehaviour
     }
     public void StartMove()
     {
-        float moveTime = 0.1f;
+        float moveTime = 1f;
         StartCoroutine(DropDownAnimation(target.localPosition, moveTime));
         target = null;
     }

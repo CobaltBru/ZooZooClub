@@ -7,6 +7,8 @@ public class Board : MonoBehaviour
     [SerializeField]
     NodeSpawner nodeSpawner;
     public List<Node> NodeList;
+    public Queue<Node> updateNodeQueue;
+
     [SerializeField]
     public Vector2Int panelSize;
     [SerializeField]
@@ -89,7 +91,7 @@ public class Board : MonoBehaviour
 
     public void BlockPrecess()
     {
-        for(int y = 0;y<panelSize.y;y++)
+        for(int y = panelSize.y-1;y>=0;y--)
         {
             for(int x = 0;x<panelSize.x;x++)
             {
@@ -107,6 +109,7 @@ public class Board : MonoBehaviour
                 else // 이동
                 {
                     moving = true;
+                    //updateNodeQueue.Enqueue(targetNode);
                     Move(node, targetNode); //위치정보의 이동
                 }
             }
@@ -121,61 +124,69 @@ public class Board : MonoBehaviour
         }
         moving = false;
     }
+
+    void blockDestroyProcess()
+    {
+        while(updateNodeQueue.Count != 0)
+        {
+            Node node = updateNodeQueue.Dequeue();
+
+        }
+    }
+
     void blockDestroyCheck()
     {
         bool[] rowchecker = new bool[panelSize.x * panelSize.y];
         bool[] colchecker = new bool[panelSize.x * panelSize.y];
-        for (int i = panelSize.y/2;i<panelSize.y;i++)
-        {
-            for(int j = 0;j<panelSize.x;j++)
-            {
-                Node currentNode = NodeList[i * panelSize.x + j];
-                if (rowchecker[i * panelSize.x + j] == false)
-                {
-                    rowchecker[i * panelSize.x + j] = true;
-                    currentNode.rowSameCount = currentNode.FindSame(ref rowchecker, currentNode.placedBlock.blockType, 0,1);
-                }
-                if(colchecker[i * panelSize.x + j] == false)
-                {
-                    colchecker[i * panelSize.x + j] = true;
-                    currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1);
-                }
-                Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
-            }
-        }
-
-        
-
-    }
-
-    private void DestroyBlocks()
-    {
-        Queue<Node> queue = new Queue<Node>();
-        Vector2Int? itemPos = null;
         for (int i = panelSize.y / 2; i < panelSize.y; i++)
         {
             for (int j = 0; j < panelSize.x; j++)
             {
                 Node currentNode = NodeList[i * panelSize.x + j];
-                queue.Enqueue(currentNode);
-                if(currentNode.rowSameCount >=3)
+                if (rowchecker[i * panelSize.x + j] == false)
                 {
-                    for (int x = j + 1; x < j + currentNode.rowSameCount; x++) 
-                    {
-
-                    }
+                    rowchecker[i * panelSize.x + j] = true;
+                    currentNode.rowSameCount = currentNode.FindSame(ref rowchecker, currentNode.placedBlock.blockType, 0, 1,0);
                 }
-                if (currentNode.colSameCount >= 3)
+                if (colchecker[i * panelSize.x + j] == false)
                 {
-                    for (int y = i + 1; y < i + currentNode.colSameCount; y++) 
-                    {
-
-                    }
+                    colchecker[i * panelSize.x + j] = true;
+                    currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1,0);
                 }
-
+                Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
             }
         }
+
     }
+
+    //private void DestroyBlocks()
+    //{
+    //    Queue<Node> queue = new Queue<Node>();
+    //    Vector2Int? itemPos = null;
+    //    for (int i = panelSize.y / 2; i < panelSize.y; i++)
+    //    {
+    //        for (int j = 0; j < panelSize.x; j++)
+    //        {
+    //            Node currentNode = NodeList[i * panelSize.x + j];
+    //            queue.Enqueue(currentNode);
+    //            if(currentNode.rowSameCount >=3)
+    //            {
+    //                for (int x = j + 1; x < j + currentNode.rowSameCount; x++) 
+    //                {
+
+    //                }
+    //            }
+    //            if (currentNode.colSameCount >= 3)
+    //            {
+    //                for (int y = i + 1; y < i + currentNode.colSameCount; y++) 
+    //                {
+
+    //                }
+    //            }
+
+    //        }
+    //    }
+    //}
     public void Move(Node from, Node to)
     {
         from.placedBlock.MoveToNode(to);

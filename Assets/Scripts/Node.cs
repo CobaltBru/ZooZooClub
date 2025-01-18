@@ -52,7 +52,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
     }
 
-    public int FindSame(ref bool[] checker,int type, int way, int counter)
+    public int FindSame(ref bool[] checker,int type, int way, int counter, int destroyFlag)
     {
         if (way == 0) rowSameCount = counter;
         else if(way == 1) colSameCount = counter;
@@ -64,8 +64,8 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             if (node.placedBlock.blockType == type)
             {
                 checker[node.point.y * board.panelSize.x + node.point.x] = true;
-                if (way == 0 || way == 2) return rowSameCount = node.FindSame(ref checker, type, way, counter + 1);
-                if (way == 1 || way == 3) return colSameCount = node.FindSame(ref checker, type, way, counter + 1);
+                if (way == 0 || way == 2) return rowSameCount = node.FindSame(ref checker, type, way, counter + 1,0);
+                if (way == 1 || way == 3) return colSameCount = node.FindSame(ref checker, type, way, counter + 1,0);
             }
             else return counter;
         }
