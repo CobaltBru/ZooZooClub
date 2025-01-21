@@ -4,11 +4,14 @@ using UnityEngine;
 using Unity.VisualScripting;
 
 public enum Fruits { Apple = 0, Banana, Grape, Kiwi, Orange, Pineapple };
+public enum Items { five = 0, four, bomb};
 
 public class Block : MonoBehaviour
 {
     [SerializeField]
     private Sprite[] fruitsImages;
+    [SerializeField]
+    private Sprite[] itemImages;
     [SerializeField]
     public int blockType;
 
@@ -50,5 +53,14 @@ public class Block : MonoBehaviour
             yield return null;
         }
     }
-    
+    public void DestroyBlock()
+    {
+        gameObject.SetActive(false);
+        Destroy(this);
+    }
+    public void ChangeImage(int type)
+    {
+        blockType = type;
+        image.sprite = itemImages[type];
+    }
 }

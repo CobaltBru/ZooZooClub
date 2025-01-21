@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
+using UnityEditor.Experimental.GraphView;
 
 public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
@@ -52,10 +53,18 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
     }
 
-    public int FindSame(ref bool[] checker,int type, int way, int counter, int destroyFlag)
+    public int FindSame(ref bool[] checker,int type, int way, int counter, bool destroyFlag)
     {
-        if (way == 0) rowSameCount = counter;
-        else if(way == 1) colSameCount = counter;
+        if ((way == 0 || way == 2))
+        {
+            if (destroyFlag) rowSameCount = 1;
+            else rowSameCount = counter;
+        }
+        else if ((way == 1 || way == 3))
+        {
+            if (destroyFlag) colSameCount = 1;
+            else colSameCount = counter;
+        }
 
         if(NeighborNodes[way].HasValue == true)
         {
@@ -63,15 +72,34 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             Node node = board.NodeList[np.y * board.panelSize.x + np.x];
             if (node.placedBlock.blockType == type)
             {
-                checker[node.point.y * board.panelSize.x + node.point.x] = true;
-                if (way == 0 || way == 2) return rowSameCount = node.FindSame(ref checker, type, way, counter + 1,0);
-                if (way == 1 || way == 3) return colSameCount = node.FindSame(ref checker, type, way, counter + 1,0);
+                if(destroyFlag == false)checker[node.point.y * board.panelSize.x + node.point.x] = true;
+                if (destroyFlag == true && placedBlock != null) DestroyBlockObject();
+                if (way == 0 || way == 2) return destroyFlag ? node.FindSame(ref checker, type, way, counter + 1, destroyFlag) : rowSameCount = node.FindSame(ref checker, type, way, counter + 1, destroyFlag);
+                if (way == 1 || way == 3) return destroyFlag ? node.FindSame(ref checker, type, way, counter + 1, destroyFlag) : colSameCount = node.FindSame(ref checker, type, way, counter + 1, destroyFlag);
             }
             else return counter;
         }
         return counter;
     }
+    public int FindSame2(ref bool[] checker, int type, int way, int counter)
+    {
+        checker[point.y * board.panelSize.x + point.x] = true;
+        if (NeighborNodes[way].HasValue)
+        {
+            Vector2Int nextNodePoint = NeighborNodes[way].Value;
+            Node nextNode = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
 
+            if (nextNode.placedBlock.blockType == type && !checker[nextNode.point.y * board.panelSize.x + nextNode.point.x])
+            {
+                counter = nextNode.FindSame2(ref checker, type, way, counter + 1);
+            }
+
+        }
+        if (way == 0) rowSameCount = counter; // 가로
+        else if (way == 1) colSameCount = counter; // 세로
+
+        return counter;
+    }
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -106,8 +134,8 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     }
     public void DestroyBlockObject()
     {
-        GameObject obj = placedBlock.GetComponent<GameObject>();
-        Destroy(obj);
+        if (placedBlock == null) return;
+        placedBlock.DestroyBlock();
         placedBlock = null;
     }
 }

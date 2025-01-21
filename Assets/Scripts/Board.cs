@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Board : MonoBehaviour
@@ -7,7 +9,7 @@ public class Board : MonoBehaviour
     [SerializeField]
     NodeSpawner nodeSpawner;
     public List<Node> NodeList;
-    public Queue<Node> updateNodeQueue;
+    public List<Vector2Int?> updateNodeList;
 
     [SerializeField]
     public Vector2Int panelSize;
@@ -33,6 +35,7 @@ public class Board : MonoBehaviour
         blockList = new List<Block>();
         dragStartNode = null;
         dragEndNode = null;
+        updateNodeList = new List<Vector2Int?>();
     }
     private void Start()
     {
@@ -91,6 +94,7 @@ public class Board : MonoBehaviour
 
     public void BlockPrecess()
     {
+        updateNodeList.Clear();
         for(int y = panelSize.y-1;y>=0;y--)
         {
             for(int x = 0;x<panelSize.x;x++)
@@ -109,7 +113,7 @@ public class Board : MonoBehaviour
                 else // 이동
                 {
                     moving = true;
-                    //updateNodeQueue.Enqueue(targetNode);
+                    if(y >= panelSize.y / 2) updateNodeList.Add(node.point);
                     Move(node, targetNode); //위치정보의 이동
                 }
             }
@@ -127,10 +131,67 @@ public class Board : MonoBehaviour
 
     void blockDestroyProcess()
     {
-        while(updateNodeQueue.Count != 0)
+        updateNodeList.Sort((a, b) =>
         {
-            Node node = updateNodeQueue.Dequeue();
+            if (!a.HasValue && !b.HasValue) return 0;   // 둘 다 null
+            if (!a.HasValue) return 1;                 // a가 null이면 b가 앞으로
+            if (!b.HasValue) return -1;                // b가 null이면 a가 앞으로
 
+            // 내림차순: y값 우선, 같으면 x값 비교
+            int compareY = b.Value.y.CompareTo(a.Value.y);
+            return compareY != 0 ? compareY : b.Value.x.CompareTo(a.Value.x);
+        });
+
+        for (int i = 0; i < updateNodeList.Count; i++) //5연, TL 패턴을 먼저 제거해줌
+        {
+            Node node = NodeList[updateNodeList[i].Value.y * panelSize.x + updateNodeList[i].Value.x];
+            
+            if (node.placedBlock == null) continue;
+            bool[] tmp = new bool[0];
+            if (node.rowSameCount >= 5)
+            {
+                Debug.Log("5 -");
+                node.FindSame(ref tmp, node.placedBlock.blockType, 0, 0, true);
+                node.FindSame(ref tmp, node.placedBlock.blockType, 2, 0, true);
+                node.placedBlock.ChangeImage((int)Items.five);
+                Debug.Log(node.point);
+            }
+            else if(node.colSameCount >= 5)
+            {
+                Debug.Log("5 l");
+                node.FindSame(ref tmp, node.placedBlock.blockType, 1, 0, true);
+                node.FindSame(ref tmp, node.placedBlock.blockType, 3, 0, true);
+                node.placedBlock.ChangeImage((int)Items.five);
+                Debug.Log(node.point);
+            }
+            else if (node.rowSameCount >= 3 && node.colSameCount >= 3)
+            {
+
+            }
+
+            
+        }
+        for (int i = 0; i < updateNodeList.Count; i++)
+        {
+            Node node = NodeList[updateNodeList[i].Value.y * panelSize.x + updateNodeList[i].Value.x];
+            if (node.placedBlock == null) continue;
+
+            if (node.rowSameCount >= 4)
+            {
+
+            }
+            else if (node.colSameCount >= 4)
+            {
+
+            }
+            else if (node.colSameCount >= 3)
+            {
+
+            }
+            else if (node.colSameCount >= 3)
+            {
+
+            }
         }
     }
 
@@ -146,12 +207,14 @@ public class Board : MonoBehaviour
                 if (rowchecker[i * panelSize.x + j] == false)
                 {
                     rowchecker[i * panelSize.x + j] = true;
-                    currentNode.rowSameCount = currentNode.FindSame(ref rowchecker, currentNode.placedBlock.blockType, 0, 1,0);
+                    //currentNode.rowSameCount = currentNode.FindSame(ref rowchecker, currentNode.placedBlock.blockType, 0, 1,false);
+                    currentNode.rowSameCount = currentNode.FindSame2(ref rowchecker, currentNode.placedBlock.blockType, 0, 1);
                 }
                 if (colchecker[i * panelSize.x + j] == false)
                 {
                     colchecker[i * panelSize.x + j] = true;
-                    currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1,0);
+                    //currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1,false);
+                    currentNode.colSameCount = currentNode.FindSame2(ref colchecker, currentNode.placedBlock.blockType, 1, 1);
                 }
                 Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
             }
@@ -159,34 +222,9 @@ public class Board : MonoBehaviour
 
     }
 
-    //private void DestroyBlocks()
-    //{
-    //    Queue<Node> queue = new Queue<Node>();
-    //    Vector2Int? itemPos = null;
-    //    for (int i = panelSize.y / 2; i < panelSize.y; i++)
-    //    {
-    //        for (int j = 0; j < panelSize.x; j++)
-    //        {
-    //            Node currentNode = NodeList[i * panelSize.x + j];
-    //            queue.Enqueue(currentNode);
-    //            if(currentNode.rowSameCount >=3)
-    //            {
-    //                for (int x = j + 1; x < j + currentNode.rowSameCount; x++) 
-    //                {
 
-    //                }
-    //            }
-    //            if (currentNode.colSameCount >= 3)
-    //            {
-    //                for (int y = i + 1; y < i + currentNode.colSameCount; y++) 
-    //                {
 
-    //                }
-    //            }
-
-    //        }
-    //    }
-    //}
+    
     public void Move(Node from, Node to)
     {
         from.placedBlock.MoveToNode(to);
@@ -210,6 +248,7 @@ public class Board : MonoBehaviour
 
     private void SwapBlock()
     {
+        updateNodeList.Clear();
         //드래그가 짧거나, 드래그한 블럭이 없거나, 범위 밖이면 return
         if (dragStartNode == dragEndNode || dragEndNode == null || dragStartNode == null) return;
         if (dragStartNode.Value.y < panelSize.y / 2 || dragEndNode.Value.y < panelSize.y / 2) return;
@@ -219,14 +258,14 @@ public class Board : MonoBehaviour
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
         //현재 스왑한 블럭 저장
-        currentMoveBlock1 = dragStartNode.Value;
-        currentMoveBlock2 = dragEndNode.Value;
+        updateNodeList.Add(dragStartNode.Value);
+        updateNodeList.Add(dragEndNode.Value);
 
         //스왑
         Swap(from, to);
         //Swap 후 제거할 블럭이 생겼는지 체크
         blockDestroyCheck();
-
+        blockDestroyProcess();
         //초기화
         dragEndNode = null;
         dragStartNode = null;

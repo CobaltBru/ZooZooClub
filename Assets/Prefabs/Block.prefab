@@ -95,6 +95,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cb72b7b9a62c1e948af522dc1a5f4552, type: 3}
   - {fileID: 21300000, guid: 31b56d20d26047f4198dd1317a24f73f, type: 3}
   - {fileID: 21300000, guid: 5027dbde785767f4f8c27f0ce69b7fce, type: 3}
+  itemImages:
   - {fileID: 21300000, guid: b51204738e7dad24699d3961388f332e, type: 3}
   blockType: 0
   target: {fileID: 0}
