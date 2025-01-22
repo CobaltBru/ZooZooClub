@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEngine;
 using Unity.VisualScripting;
+using UnityEngine.Events;
 
 public enum Fruits { Apple = 0, Banana, Grape, Kiwi, Orange, Pineapple };
 public enum Items { five = 0, four, bomb};
@@ -20,6 +21,8 @@ public class Block : MonoBehaviour
     public Node target;
 
     public bool needDestroy = false;
+
+    public bool isMoving = false;
     public void Setup()
     {
         image = GetComponent<Image>();
@@ -33,11 +36,16 @@ public class Block : MonoBehaviour
     public void StartMove()
     {
         float moveTime = 1f;
-        StartCoroutine(DropDownAnimation(target.localPosition, moveTime));
+        isMoving = true;
+        StartCoroutine(OnDropDownAnimation(target.localPosition, moveTime, EndMove));
+    }
+    public void EndMove()
+    {
         target = null;
+        isMoving = false;
     }
 
-    private IEnumerator DropDownAnimation(Vector3 end, float time)
+    private IEnumerator OnDropDownAnimation(Vector3 end, float time,UnityAction Action)
     {
         float current = 0;
         float percent = 0;
@@ -52,6 +60,7 @@ public class Block : MonoBehaviour
 
             yield return null;
         }
+        if(Action != null) Action.Invoke();
     }
     public void DestroyBlock()
     {

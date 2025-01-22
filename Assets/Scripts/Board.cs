@@ -216,7 +216,7 @@ public class Board : MonoBehaviour
                     //currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1,false);
                     currentNode.colSameCount = currentNode.FindSame2(ref colchecker, currentNode.placedBlock.blockType, 1, 1);
                 }
-                Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
+                //Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
             }
         }
 
@@ -271,5 +271,17 @@ public class Board : MonoBehaviour
         dragStartNode = null;
         moving = false;
         
+    }
+
+    public bool CheckAllBlockMoveFinish()
+    {
+        foreach(Node node in NodeList)
+        {
+            if(node.placedBlock != null)
+            {
+                if (node.placedBlock.isMoving == true) return false;
+            }
+        }
+        return true;
     }
 }
