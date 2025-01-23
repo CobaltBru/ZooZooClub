@@ -4,12 +4,14 @@ using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
+public enum STATUS {IDLE, PROCESS, DROP, SWAP, DESTROY };
 public class Board : MonoBehaviour
 {
     [SerializeField]
     NodeSpawner nodeSpawner;
     public List<Node> NodeList;
-    public List<Vector2Int?> updateNodeList;
+    
+    public STATUS currentState = STATUS.IDLE;
 
     [SerializeField]
     public Vector2Int panelSize;
@@ -20,13 +22,12 @@ public class Board : MonoBehaviour
 
     private List<Block> blockList;
 
+    public List<Vector2Int?> updateNodeList;
     [SerializeField]
-    public bool moving = false;
     public Vector2Int? dragStartNode;
+    [SerializeField]
     public Vector2Int? dragEndNode;
 
-    public Vector2Int currentMoveBlock1;
-    public Vector2Int currentMoveBlock2;
 
     private void Awake()
     {
@@ -46,15 +47,33 @@ public class Board : MonoBehaviour
             node.localPosition = node.GetComponent<RectTransform>().localPosition;
         }
         CheckNodesBlank();
+        BlockDrop();
     }
     private void Update()
     {
-        
-        BlockPrecess();
-        CheckNodesBlank();
-        if(!moving) SwapBlock();
+        switch(currentState)
+        {
+            case STATUS.IDLE:
+                CheckNodesBlank();
+                break;
+            case STATUS.DROP:
+                BlockDrop();
+                break;
+            case STATUS.SWAP:
+                SwapBlock();
+                break;
+            case STATUS.DESTROY:
+
+                break;
+        }
     }
-    void CheckNodesBlank()
+
+    void IdleProcess()
+    {
+
+    }
+
+    void CheckNodesBlank() //생성칸 빈칸체크 후 블록 스폰
     {
         for (int y = 0; y < panelSize.y / 2; y++) 
         {
@@ -75,7 +94,7 @@ public class Board : MonoBehaviour
     }
 
 
-    void SpawnBlock(int xy)
+    void SpawnBlock(int xy) // 블록 스폰
     {
         Vector2Int np = NodeList[xy].point;
         GameObject clone = Instantiate(blockPrefab, blockRect);
@@ -92,7 +111,7 @@ public class Board : MonoBehaviour
         blockList.Add(block);
     }
 
-    public void BlockPrecess()
+    public void BlockDrop()
     {
         updateNodeList.Clear();
         for(int y = panelSize.y-1;y>=0;y--)
@@ -112,7 +131,6 @@ public class Board : MonoBehaviour
                 }
                 else // 이동
                 {
-                    moving = true;
                     if(y >= panelSize.y / 2) updateNodeList.Add(node.point);
                     Move(node, targetNode); //위치정보의 이동
                 }
@@ -126,7 +144,6 @@ public class Board : MonoBehaviour
                 block.StartMove(); //실질적으로 보여지는 이동
             }
         }
-        moving = false;
     }
 
     void blockDestroyProcess()
@@ -195,7 +212,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    void blockDestroyCheck()
+    void blockConnectionCheck()
     {
         bool[] rowchecker = new bool[panelSize.x * panelSize.y];
         bool[] colchecker = new bool[panelSize.x * panelSize.y];
@@ -248,12 +265,11 @@ public class Board : MonoBehaviour
 
     private void SwapBlock()
     {
+        if (!CheckAllBlockMoveFinish()) return;
         updateNodeList.Clear();
         //드래그가 짧거나, 드래그한 블럭이 없거나, 범위 밖이면 return
         if (dragStartNode == dragEndNode || dragEndNode == null || dragStartNode == null) return;
         if (dragStartNode.Value.y < panelSize.y / 2 || dragEndNode.Value.y < panelSize.y / 2) return;
-        //움직이는중 마킹
-        moving = true;
         //시작, 끝 블럭 확인
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
@@ -264,12 +280,11 @@ public class Board : MonoBehaviour
         //스왑
         Swap(from, to);
         //Swap 후 제거할 블럭이 생겼는지 체크
-        blockDestroyCheck();
+        blockConnectionCheck();
         blockDestroyProcess();
         //초기화
         dragEndNode = null;
         dragStartNode = null;
-        moving = false;
         
     }
 
