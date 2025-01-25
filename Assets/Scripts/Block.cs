@@ -35,7 +35,7 @@ public class Block : MonoBehaviour
     }
     public void StartMove()
     {
-        float moveTime = 1f;
+        float moveTime = 1.0f;
         isMoving = true;
         StartCoroutine(OnDropDownAnimation(target.localPosition, moveTime, EndMove));
     }

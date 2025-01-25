@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
@@ -28,7 +29,6 @@ public class Board : MonoBehaviour
     [SerializeField]
     public Vector2Int? dragEndNode;
 
-
     private void Awake()
     {
         panelSize = new Vector2Int(8, 16);
@@ -51,26 +51,34 @@ public class Board : MonoBehaviour
     }
     private void Update()
     {
+        //Debug.Log(currentState);
         switch(currentState)
         {
             case STATUS.IDLE:
-                CheckNodesBlank();
+                IdleProcess();
                 break;
             case STATUS.DROP:
                 BlockDrop();
                 break;
             case STATUS.SWAP:
-                SwapBlock();
+                StartCoroutine(checkSwapStatus());
                 break;
             case STATUS.DESTROY:
-
+                break;
+            case STATUS.PROCESS:
                 break;
         }
     }
 
     void IdleProcess()
     {
-
+        if (dragStartNode != dragEndNode && dragEndNode != null && dragStartNode != null)
+        {
+            if (dragStartNode.Value.y >= panelSize.y / 2 && dragEndNode.Value.y >= panelSize.y / 2)
+            {
+                StartCoroutine(SwapBlock());
+            }
+        }
     }
 
     void CheckNodesBlank() //생성칸 빈칸체크 후 블록 스폰
@@ -262,14 +270,38 @@ public class Board : MonoBehaviour
         from.placedBlock.StartMove();
         to.placedBlock.StartMove();
     }
-
-    private void SwapBlock()
+    private IEnumerator checkSwapStatus()
     {
-        if (!CheckAllBlockMoveFinish()) return;
+        currentState = STATUS.PROCESS;
+        Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
+        Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
+        //blockConnectionCheck();
+        from.FindSame3();
+        to.FindSame3();
+
+        //if (from.rowSameCount >= 3 || from.colSameCount >= 3 || to.rowSameCount >= 3 || to.colSameCount >= 3)
+        //{
+        //    currentState = STATUS.DESTROY;
+        //}
+        if (from.sameCount[0] + from.sameCount[2]>=2 || from.sameCount[1] + from.sameCount[3] >= 2 ||
+            to.sameCount[0] + to.sameCount[2] >= 2|| to.sameCount[1] + to.sameCount[3] >= 2)
+        {
+            currentState = STATUS.DESTROY;
+        }
+        else //원상복귀
+        {
+            Swap(from, to);
+            yield return new WaitForSeconds(2.0f);
+            currentState = STATUS.IDLE;
+        }
+        //초기화
+        dragEndNode = null;
+        dragStartNode = null;
+    }
+    private IEnumerator SwapBlock()
+    {
+        currentState = STATUS.PROCESS;
         updateNodeList.Clear();
-        //드래그가 짧거나, 드래그한 블럭이 없거나, 범위 밖이면 return
-        if (dragStartNode == dragEndNode || dragEndNode == null || dragStartNode == null) return;
-        if (dragStartNode.Value.y < panelSize.y / 2 || dragEndNode.Value.y < panelSize.y / 2) return;
         //시작, 끝 블럭 확인
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
@@ -279,12 +311,8 @@ public class Board : MonoBehaviour
 
         //스왑
         Swap(from, to);
-        //Swap 후 제거할 블럭이 생겼는지 체크
-        blockConnectionCheck();
-        blockDestroyProcess();
-        //초기화
-        dragEndNode = null;
-        dragStartNode = null;
+        yield return new WaitForSeconds(2.0f);
+        currentState = STATUS.SWAP;
         
     }
 

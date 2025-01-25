@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
 using UnityEditor.Experimental.GraphView;
+using Unity.VisualScripting;
 
 public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
@@ -22,12 +23,13 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public int rowSameCount = 0;
     public int colSameCount = 0;
+    public int[] sameCount;
     public void Setup(Board board, Vector2Int?[] neighborNodes, Vector2Int point)
     {
         this.board = board;
         NeighborNodes = neighborNodes;
         this.point = point;
-
+        sameCount = new int[4];
     }
     
 
@@ -99,6 +101,31 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         else if (way == 1) colSameCount = counter; // ¼¼·Î
 
         return counter;
+    }
+
+    public void FindSame3()
+    {
+        if(placedBlock == null) return;
+        int type = placedBlock.blockType;
+
+        for (int i = 0; i < 4; i++)
+        {
+            Node node = this;
+            while (true)
+            {
+                if (!node.NeighborNodes[i].HasValue) break;
+                Vector2Int nextNodePoint = node.NeighborNodes[i].Value;
+                if (nextNodePoint.y < board.panelSize.y / 2) break;
+                node = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
+                if (node.placedBlock == null) break;
+                if (node.placedBlock.blockType != type) break;
+                else
+                {
+                    sameCount[i]++;
+                }
+            }
+        }
+        Debug.Log($"[{point.x},{point.y}]//R:{sameCount[0]},D:{sameCount[1]},L:{sameCount[2]},U::{sameCount[3]}");
     }
 
     public void OnPointerDown(PointerEventData eventData)
