@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -23,7 +24,7 @@ public class Board : MonoBehaviour
 
     private List<Block> blockList;
 
-    public List<Vector2Int?> updateNodeList;
+    public List<Node> updateNodeList;
     [SerializeField]
     public Vector2Int? dragStartNode;
     [SerializeField]
@@ -36,7 +37,7 @@ public class Board : MonoBehaviour
         blockList = new List<Block>();
         dragStartNode = null;
         dragEndNode = null;
-        updateNodeList = new List<Vector2Int?>();
+        updateNodeList = new List<Node>();
     }
     private void Start()
     {
@@ -139,7 +140,7 @@ public class Board : MonoBehaviour
                 }
                 else // 이동
                 {
-                    if(y >= panelSize.y / 2) updateNodeList.Add(node.point);
+                    if(y >= panelSize.y / 2) updateNodeList.Add(targetNode);
                     Move(node, targetNode); //위치정보의 이동
                 }
             }
@@ -156,68 +157,39 @@ public class Board : MonoBehaviour
 
     void blockDestroyProcess()
     {
-        updateNodeList.Sort((a, b) =>
+        currentState = STATUS.PROCESS;
+        // TODO
+        // 한바퀴 돌아서 5,TL 족보 처리 후 4,3 족보 처리해야됨
+        while(updateNodeList.Count>0)
         {
-            if (!a.HasValue && !b.HasValue) return 0;   // 둘 다 null
-            if (!a.HasValue) return 1;                 // a가 null이면 b가 앞으로
-            if (!b.HasValue) return -1;                // b가 null이면 a가 앞으로
+            int idx = updateNodeList.Count - 1;
+            Node currentNode = updateNodeList[idx];
+            updateNodeList.RemoveAt(idx);
+            if (currentNode.placedBlock != null) continue;
+            currentNode.FindSame3();
+            int r = currentNode.sameCount[0];
+            int d = currentNode.sameCount[1];
+            int l = currentNode.sameCount[2];
+            int u = currentNode.sameCount[3];
 
-            // 내림차순: y값 우선, 같으면 x값 비교
-            int compareY = b.Value.y.CompareTo(a.Value.y);
-            return compareY != 0 ? compareY : b.Value.x.CompareTo(a.Value.x);
-        });
+            if (r + l >= 4) //가로 5
+            {
 
-        for (int i = 0; i < updateNodeList.Count; i++) //5연, TL 패턴을 먼저 제거해줌
-        {
-            Node node = NodeList[updateNodeList[i].Value.y * panelSize.x + updateNodeList[i].Value.x];
-            
-            if (node.placedBlock == null) continue;
-            bool[] tmp = new bool[0];
-            if (node.rowSameCount >= 5)
-            {
-                Debug.Log("5 -");
-                node.FindSame(ref tmp, node.placedBlock.blockType, 0, 0, true);
-                node.FindSame(ref tmp, node.placedBlock.blockType, 2, 0, true);
-                node.placedBlock.ChangeImage((int)Items.five);
-                Debug.Log(node.point);
             }
-            else if(node.colSameCount >= 5)
+            else if (d + u >= 4) //세로 5
             {
-                Debug.Log("5 l");
-                node.FindSame(ref tmp, node.placedBlock.blockType, 1, 0, true);
-                node.FindSame(ref tmp, node.placedBlock.blockType, 3, 0, true);
-                node.placedBlock.ChangeImage((int)Items.five);
-                Debug.Log(node.point);
+
             }
-            else if (node.rowSameCount >= 3 && node.colSameCount >= 3)
+            else if(r + l>=3 && u + d >= 3) //T
             {
 
             }
 
-            
+
         }
-        for (int i = 0; i < updateNodeList.Count; i++)
-        {
-            Node node = NodeList[updateNodeList[i].Value.y * panelSize.x + updateNodeList[i].Value.x];
-            if (node.placedBlock == null) continue;
-
-            if (node.rowSameCount >= 4)
-            {
-
-            }
-            else if (node.colSameCount >= 4)
-            {
-
-            }
-            else if (node.colSameCount >= 3)
-            {
-
-            }
-            else if (node.colSameCount >= 3)
-            {
-
-            }
-        }
+        
+        
+        
     }
 
     void blockConnectionCheck()
@@ -279,13 +251,11 @@ public class Board : MonoBehaviour
         from.FindSame3();
         to.FindSame3();
 
-        //if (from.rowSameCount >= 3 || from.colSameCount >= 3 || to.rowSameCount >= 3 || to.colSameCount >= 3)
-        //{
-        //    currentState = STATUS.DESTROY;
-        //}
         if (from.sameCount[0] + from.sameCount[2]>=2 || from.sameCount[1] + from.sameCount[3] >= 2 ||
             to.sameCount[0] + to.sameCount[2] >= 2|| to.sameCount[1] + to.sameCount[3] >= 2)
         {
+            updateNodeList.Add(to);
+            updateNodeList.Add(from);
             currentState = STATUS.DESTROY;
         }
         else //원상복귀
@@ -306,8 +276,8 @@ public class Board : MonoBehaviour
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
         //현재 스왑한 블럭 저장
-        updateNodeList.Add(dragStartNode.Value);
-        updateNodeList.Add(dragEndNode.Value);
+        updateNodeList.Add(from);
+        updateNodeList.Add(to);
 
         //스왑
         Swap(from, to);
