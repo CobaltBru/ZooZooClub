@@ -4,17 +4,14 @@ using UnityEngine;
 using Unity.VisualScripting;
 using UnityEngine.Events;
 
-public enum Fruits { Apple = 0, Banana, Grape, Kiwi, Orange, Pineapple };
-public enum Items { five = 0, four, bomb};
+public enum IMAGES { Apple = 0, Banana, Grape, Kiwi, Orange, Pineapple, five = 6, four, bomb };
 
 public class Block : MonoBehaviour
 {
     [SerializeField]
-    private Sprite[] fruitsImages;
+    private Sprite[] imageList;
     [SerializeField]
-    private Sprite[] itemImages;
-    [SerializeField]
-    public int blockType;
+    public IMAGES blockType;
 
     private Image image;
 
@@ -26,8 +23,8 @@ public class Block : MonoBehaviour
     public void Setup()
     {
         image = GetComponent<Image>();
-        blockType = Random.Range(0, 6);
-        image.sprite = fruitsImages[blockType];
+        blockType = (IMAGES)Random.Range(0, 6);
+        image.sprite = imageList[(int)blockType];
     }
     public void MoveToNode(Node to)
     {
@@ -35,7 +32,7 @@ public class Block : MonoBehaviour
     }
     public void StartMove()
     {
-        float moveTime = 1.0f;
+        float moveTime = 0.5f;
         isMoving = true;
         StartCoroutine(OnDropDownAnimation(target.localPosition, moveTime, EndMove));
     }
@@ -68,9 +65,9 @@ public class Block : MonoBehaviour
         gameObject.SetActive(false);
         Destroy(this);
     }
-    public void ChangeImage(int type)
+    public void ChangeImage(IMAGES type)
     {
         blockType = type;
-        image.sprite = itemImages[type];
+        image.sprite = imageList[(int)type];
     }
 }

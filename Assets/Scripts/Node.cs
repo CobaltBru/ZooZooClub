@@ -29,7 +29,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         this.board = board;
         NeighborNodes = neighborNodes;
         this.point = point;
-        sameCount = new int[4];
+        sameCount = new int[4] { 0, 0, 0, 0 };
     }
     
 
@@ -55,58 +55,60 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
     }
 
-    public int FindSame(ref bool[] checker,int type, int way, int counter, bool destroyFlag)
-    {
-        if ((way == 0 || way == 2))
-        {
-            if (destroyFlag) rowSameCount = 1;
-            else rowSameCount = counter;
-        }
-        else if ((way == 1 || way == 3))
-        {
-            if (destroyFlag) colSameCount = 1;
-            else colSameCount = counter;
-        }
+    //public int FindSame(ref bool[] checker,IMAGES type, int way, int counter, bool destroyFlag)
+    //{
+    //    if ((way == 0 || way == 2))
+    //    {
+    //        if (destroyFlag) rowSameCount = 1;
+    //        else rowSameCount = counter;
+    //    }
+    //    else if ((way == 1 || way == 3))
+    //    {
+    //        if (destroyFlag) colSameCount = 1;
+    //        else colSameCount = counter;
+    //    }
 
-        if(NeighborNodes[way].HasValue == true)
-        {
-            Vector2Int np = NeighborNodes[way].Value;
-            Node node = board.NodeList[np.y * board.panelSize.x + np.x];
-            if (node.placedBlock.blockType == type)
-            {
-                if(destroyFlag == false)checker[node.point.y * board.panelSize.x + node.point.x] = true;
-                if (destroyFlag == true && placedBlock != null) DestroyBlockObject();
-                if (way == 0 || way == 2) return destroyFlag ? node.FindSame(ref checker, type, way, counter + 1, destroyFlag) : rowSameCount = node.FindSame(ref checker, type, way, counter + 1, destroyFlag);
-                if (way == 1 || way == 3) return destroyFlag ? node.FindSame(ref checker, type, way, counter + 1, destroyFlag) : colSameCount = node.FindSame(ref checker, type, way, counter + 1, destroyFlag);
-            }
-            else return counter;
-        }
-        return counter;
-    }
-    public int FindSame2(ref bool[] checker, int type, int way, int counter)
-    {
-        checker[point.y * board.panelSize.x + point.x] = true;
-        if (NeighborNodes[way].HasValue)
-        {
-            Vector2Int nextNodePoint = NeighborNodes[way].Value;
-            Node nextNode = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
+    //    if(NeighborNodes[way].HasValue == true)
+    //    {
+    //        Vector2Int np = NeighborNodes[way].Value;
+    //        Node node = board.NodeList[np.y * board.panelSize.x + np.x];
+    //        if (node.placedBlock.blockType == type)
+    //        {
+    //            if(destroyFlag == false)checker[node.point.y * board.panelSize.x + node.point.x] = true;
+    //            if (destroyFlag == true && placedBlock != null) DestroyBlockObject();
+    //            if (way == 0 || way == 2) return destroyFlag ? node.FindSame(ref checker, type, way, counter + 1, destroyFlag) : rowSameCount = node.FindSame(ref checker, type, way, counter + 1, destroyFlag);
+    //            if (way == 1 || way == 3) return destroyFlag ? node.FindSame(ref checker, type, way, counter + 1, destroyFlag) : colSameCount = node.FindSame(ref checker, type, way, counter + 1, destroyFlag);
+    //        }
+    //        else return counter;
+    //    }
+    //    return counter;
+    //}
 
-            if (nextNode.placedBlock.blockType == type && !checker[nextNode.point.y * board.panelSize.x + nextNode.point.x])
-            {
-                counter = nextNode.FindSame2(ref checker, type, way, counter + 1);
-            }
+    //public int FindSame2(ref bool[] checker, int type, int way, int counter)
+    //{
+    //    checker[point.y * board.panelSize.x + point.x] = true;
+    //    if (NeighborNodes[way].HasValue)
+    //    {
+    //        Vector2Int nextNodePoint = NeighborNodes[way].Value;
+    //        Node nextNode = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
 
-        }
-        if (way == 0) rowSameCount = counter; // 가로
-        else if (way == 1) colSameCount = counter; // 세로
+    //        if (nextNode.placedBlock.blockType == type && !checker[nextNode.point.y * board.panelSize.x + nextNode.point.x])
+    //        {
+    //            counter = nextNode.FindSame2(ref checker, type, way, counter + 1);
+    //        }
 
-        return counter;
-    }
+    //    }
+    //    if (way == 0) rowSameCount = counter; // 가로
+    //    else if (way == 1) colSameCount = counter; // 세로
 
-    public void FindSame3()
+    //    return counter;
+    //}
+
+    public void FindSame3() //true -> destroy
     {
         if(placedBlock == null) return;
-        int type = placedBlock.blockType;
+        InitsameCount();
+        IMAGES type = placedBlock.blockType;
 
         for (int i = 0; i < 4; i++)
         {
@@ -125,12 +127,61 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
                 }
             }
         }
-        Debug.Log($"[{point.x},{point.y}]//R:{sameCount[0]},D:{sameCount[1]},L:{sameCount[2]},U::{sameCount[3]}");
+    }
+
+    public void Destroysame()
+    {
+        if (placedBlock == null) return;
+        IMAGES type = placedBlock.blockType;
+
+        if (sameCount[0] + sameCount[2] >= 2) 
+        {
+            Node node = this;
+            for (int i = 0; i < sameCount[0];i++)
+            {
+                Vector2Int nextNodePoint = node.NeighborNodes[0].Value;
+                node = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
+                if (node.placedBlock == null) continue;
+                node.DestroyBlockObject();
+                node.InitsameCount();
+            }
+            node = this;
+            for (int i = 0; i < sameCount[2]; i++)
+            {
+                Vector2Int nextNodePoint = node.NeighborNodes[2].Value;
+                node = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
+                if (node.placedBlock == null) continue;
+                node.DestroyBlockObject();
+                node.InitsameCount();
+            }
+        }
+        if (sameCount[1] + sameCount[3] >= 2)
+        {
+            Node node = this;
+            for (int i = 0; i < sameCount[1]; i++)
+            {
+                Vector2Int nextNodePoint = node.NeighborNodes[1].Value;
+                node = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
+                if (node.placedBlock == null) continue;
+                node.DestroyBlockObject();
+                node.InitsameCount();
+            }
+            node = this;
+            for (int i = 0; i < sameCount[3]; i++)
+            {
+                Vector2Int nextNodePoint = node.NeighborNodes[3].Value;
+                node = board.NodeList[nextNodePoint.y * board.panelSize.x + nextNodePoint.x];
+                if (node.placedBlock == null) continue;
+                node.DestroyBlockObject();
+                node.InitsameCount();
+            }
+        }
+        
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        
+        if (board.currentState != STATUS.IDLE) return;
         board.dragStartNode = point;
         touchStart = Input.mousePosition;
     }
@@ -138,6 +189,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (board.currentState != STATUS.IDLE) return;
         touchEnd = Input.mousePosition;
         float deltaX = touchEnd.x - touchStart.x;
         float deltaY = touchEnd.y - touchStart.y;
@@ -164,5 +216,15 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         if (placedBlock == null) return;
         placedBlock.DestroyBlock();
         placedBlock = null;
+    }
+
+    public void InitsameCount()
+    {
+        for (int i = 0; i < 4; i++) sameCount[i] = 0;
+    }
+
+    public void ToItem(IMAGES type)
+    {
+        placedBlock.ChangeImage(type);
     }
 }

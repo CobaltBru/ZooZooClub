@@ -48,23 +48,24 @@ public class Board : MonoBehaviour
             node.localPosition = node.GetComponent<RectTransform>().localPosition;
         }
         CheckNodesBlank();
-        BlockDrop();
+        StartCoroutine(BlockDrop());
     }
     private void Update()
     {
-        //Debug.Log(currentState);
+        //Debug.Log(updateNodeList.Count());
         switch(currentState)
         {
             case STATUS.IDLE:
                 IdleProcess();
                 break;
             case STATUS.DROP:
-                BlockDrop();
+                StartCoroutine(BlockDrop());
                 break;
             case STATUS.SWAP:
                 StartCoroutine(checkSwapStatus());
                 break;
             case STATUS.DESTROY:
+                StartCoroutine(blockDestroyProcess());
                 break;
             case STATUS.PROCESS:
                 break;
@@ -94,12 +95,7 @@ public class Board : MonoBehaviour
                 }
             }
         }
-        
-        //for(int x = 0;x<panelSize.x;x++)
-        //{
-        //    Debug.Log($"{x},{needSpawnNode[x]}");
-        //}
-
+       
     }
 
 
@@ -120,9 +116,11 @@ public class Board : MonoBehaviour
         blockList.Add(block);
     }
 
-    public void BlockDrop()
+    public IEnumerator BlockDrop()
     {
         updateNodeList.Clear();
+        currentState = STATUS.PROCESS;
+
         for(int y = panelSize.y-1;y>=0;y--)
         {
             for(int x = 0;x<panelSize.x;x++)
@@ -140,84 +138,119 @@ public class Board : MonoBehaviour
                 }
                 else // 이동
                 {
-                    if(y >= panelSize.y / 2) updateNodeList.Add(targetNode);
                     Move(node, targetNode); //위치정보의 이동
+                    updateNodeList.Add(targetNode);
                 }
             }
         }
         
-        foreach (Block block in blockList)
+        foreach (Node node in updateNodeList)
         {
-            if(block.target != null)
+            if(node.placedBlock.target != null)
             {
-                block.StartMove(); //실질적으로 보여지는 이동
+                node.placedBlock.StartMove(); //실질적으로 보여지는 이동
             }
         }
+        CheckNodesBlank();
+
+        yield return new WaitForSeconds(0.5f);
+
+        if(updateNodeList.Count > 0) currentState = STATUS.DESTROY;
+        else currentState = STATUS.IDLE;
     }
 
-    void blockDestroyProcess()
+    IEnumerator blockDestroyProcess()
     {
         currentState = STATUS.PROCESS;
-        // TODO
-        // 한바퀴 돌아서 5,TL 족보 처리 후 4,3 족보 처리해야됨
-        while(updateNodeList.Count>0)
+        updateNodeList.Reverse();
+        Debug.Log(updateNodeList.Count);
+        foreach(Node node in updateNodeList)
         {
-            int idx = updateNodeList.Count - 1;
-            Node currentNode = updateNodeList[idx];
-            updateNodeList.RemoveAt(idx);
-            if (currentNode.placedBlock != null) continue;
-            currentNode.FindSame3();
-            int r = currentNode.sameCount[0];
-            int d = currentNode.sameCount[1];
-            int l = currentNode.sameCount[2];
-            int u = currentNode.sameCount[3];
-
+            if ((node.point.y < panelSize.y / 2) || node.placedBlock == null) continue;
+            node.FindSame3();
+            int r = node.sameCount[0];
+            int d = node.sameCount[1];
+            int l = node.sameCount[2];
+            int u = node.sameCount[3];
             if (r + l >= 4) //가로 5
             {
-
+                node.Destroysame();
+                node.ToItem(IMAGES.five);
             }
             else if (d + u >= 4) //세로 5
             {
-
+                node.Destroysame();
+                node.ToItem(IMAGES.five);
             }
-            else if(r + l>=3 && u + d >= 3) //T
+            else if (r + l >= 2 && u + d >= 2) //T
             {
-
+                node.Destroysame();
+                node.ToItem(IMAGES.bomb);
             }
-
-
+            node.InitsameCount();
         }
-        
-        
-        
-    }
-
-    void blockConnectionCheck()
-    {
-        bool[] rowchecker = new bool[panelSize.x * panelSize.y];
-        bool[] colchecker = new bool[panelSize.x * panelSize.y];
-        for (int i = panelSize.y / 2; i < panelSize.y; i++)
+        foreach (Node node in updateNodeList)
         {
-            for (int j = 0; j < panelSize.x; j++)
+            if (node.placedBlock == null) continue;
+            node.FindSame3();
+            int r = node.sameCount[0];
+            int d = node.sameCount[1];
+            int l = node.sameCount[2];
+            int u = node.sameCount[3];
+            if (r + l >= 3) //가로 4
             {
-                Node currentNode = NodeList[i * panelSize.x + j];
-                if (rowchecker[i * panelSize.x + j] == false)
-                {
-                    rowchecker[i * panelSize.x + j] = true;
-                    //currentNode.rowSameCount = currentNode.FindSame(ref rowchecker, currentNode.placedBlock.blockType, 0, 1,false);
-                    currentNode.rowSameCount = currentNode.FindSame2(ref rowchecker, currentNode.placedBlock.blockType, 0, 1);
-                }
-                if (colchecker[i * panelSize.x + j] == false)
-                {
-                    colchecker[i * panelSize.x + j] = true;
-                    //currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1,false);
-                    currentNode.colSameCount = currentNode.FindSame2(ref colchecker, currentNode.placedBlock.blockType, 1, 1);
-                }
-                //Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
+                node.Destroysame();
+                node.ToItem(IMAGES.four);
             }
+            else if (d + u >= 3) //세로 4
+            {
+                node.Destroysame();
+                node.ToItem(IMAGES.four);
+            }
+            else if (r + l >= 2) // 가로 3
+            {
+                node.Destroysame();
+                node.DestroyBlockObject();
+            }
+            else if(u + d >= 2) //세로 3
+            {
+                node.Destroysame();
+                node.DestroyBlockObject();
+            }
+            node.InitsameCount();
         }
+        updateNodeList.Clear();
+        yield return new WaitForSeconds(1.0f);
+        currentState = STATUS.DROP;
 
     }
+
+    //void blockConnectionCheck()
+    //{
+    //    bool[] rowchecker = new bool[panelSize.x * panelSize.y];
+    //    bool[] colchecker = new bool[panelSize.x * panelSize.y];
+    //    for (int i = panelSize.y / 2; i < panelSize.y; i++)
+    //    {
+    //        for (int j = 0; j < panelSize.x; j++)
+    //        {
+    //            Node currentNode = NodeList[i * panelSize.x + j];
+    //            if (rowchecker[i * panelSize.x + j] == false)
+    //            {
+    //                rowchecker[i * panelSize.x + j] = true;
+    //                //currentNode.rowSameCount = currentNode.FindSame(ref rowchecker, currentNode.placedBlock.blockType, 0, 1,false);
+    //                currentNode.rowSameCount = currentNode.FindSame2(ref rowchecker, currentNode.placedBlock.blockType, 0, 1);
+    //            }
+    //            if (colchecker[i * panelSize.x + j] == false)
+    //            {
+    //                colchecker[i * panelSize.x + j] = true;
+    //                //currentNode.colSameCount = currentNode.FindSame(ref colchecker, currentNode.placedBlock.blockType, 1, 1,false);
+    //                currentNode.colSameCount = currentNode.FindSame2(ref colchecker, currentNode.placedBlock.blockType, 1, 1);
+    //            }
+    //            //Debug.Log($"{j},{i}->({currentNode.rowSameCount},{currentNode.colSameCount})");
+    //        }
+    //    }
+
+    //}
 
 
 
@@ -247,7 +280,6 @@ public class Board : MonoBehaviour
         currentState = STATUS.PROCESS;
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
-        //blockConnectionCheck();
         from.FindSame3();
         to.FindSame3();
 
@@ -261,7 +293,9 @@ public class Board : MonoBehaviour
         else //원상복귀
         {
             Swap(from, to);
-            yield return new WaitForSeconds(2.0f);
+            from.InitsameCount();
+            to.InitsameCount();
+            yield return new WaitForSeconds(1.0f);
             currentState = STATUS.IDLE;
         }
         //초기화
@@ -275,13 +309,9 @@ public class Board : MonoBehaviour
         //시작, 끝 블럭 확인
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
-        //현재 스왑한 블럭 저장
-        updateNodeList.Add(from);
-        updateNodeList.Add(to);
-
         //스왑
         Swap(from, to);
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(1.0f);
         currentState = STATUS.SWAP;
         
     }
