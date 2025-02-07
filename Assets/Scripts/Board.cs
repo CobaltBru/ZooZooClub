@@ -41,6 +41,7 @@ public class Board : MonoBehaviour
     }
     private void Start()
     {
+        currentState = STATUS.PROCESS;
         UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(nodeSpawner.GetComponent<RectTransform>());
 
         foreach (Node node in NodeList)
@@ -81,6 +82,8 @@ public class Board : MonoBehaviour
                 StartCoroutine(SwapBlock());
             }
         }
+
+        
     }
 
     void CheckNodesBlank() //생성칸 빈칸체크 후 블록 스폰
@@ -151,11 +154,12 @@ public class Board : MonoBehaviour
                 node.placedBlock.StartMove(); //실질적으로 보여지는 이동
             }
         }
+        
+
+        yield return new WaitUntil(() => CheckAllBlockMoveFinish());
         CheckNodesBlank();
 
-        yield return new WaitForSeconds(0.5f);
-
-        if(updateNodeList.Count > 0) currentState = STATUS.DESTROY;
+        if (updateNodeList.Count > 0) currentState = STATUS.DESTROY;
         else currentState = STATUS.IDLE;
     }
 
@@ -166,12 +170,13 @@ public class Board : MonoBehaviour
         Debug.Log(updateNodeList.Count);
         foreach(Node node in updateNodeList)
         {
-            if ((node.point.y < panelSize.y / 2) || node.placedBlock == null) continue;
+            if ((node.point.y < panelSize.y / 2 ) || node.placedBlock == null) continue;
             node.FindSame3();
             int r = node.sameCount[0];
             int d = node.sameCount[1];
             int l = node.sameCount[2];
             int u = node.sameCount[3];
+            Debug.Log($"{node.point.x},{node.point.y}");
             if (r + l >= 4) //가로 5
             {
                 node.Destroysame();
@@ -191,7 +196,7 @@ public class Board : MonoBehaviour
         }
         foreach (Node node in updateNodeList)
         {
-            if (node.placedBlock == null) continue;
+            if ((node.point.y < panelSize.y / 2) || node.placedBlock == null) continue;
             node.FindSame3();
             int r = node.sameCount[0];
             int d = node.sameCount[1];
@@ -295,7 +300,7 @@ public class Board : MonoBehaviour
             Swap(from, to);
             from.InitsameCount();
             to.InitsameCount();
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.5f);
             currentState = STATUS.IDLE;
         }
         //초기화
@@ -306,12 +311,20 @@ public class Board : MonoBehaviour
     {
         currentState = STATUS.PROCESS;
         updateNodeList.Clear();
+        if(Mathf.Abs(dragStartNode.Value.x - dragEndNode.Value.x) + 
+            Mathf.Abs(dragStartNode.Value.y - dragEndNode.Value.y)>1)
+        {
+            dragEndNode = null;
+            dragStartNode = null;
+            currentState = STATUS.IDLE;
+            yield break;
+        }
         //시작, 끝 블럭 확인
         Node from = NodeList[dragStartNode.Value.y * panelSize.x + dragStartNode.Value.x];
         Node to = NodeList[dragEndNode.Value.y * panelSize.x + dragEndNode.Value.x];
         //스왑
         Swap(from, to);
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(0.5f);
         currentState = STATUS.SWAP;
         
     }

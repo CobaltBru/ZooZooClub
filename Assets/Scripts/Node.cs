@@ -133,7 +133,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         if (placedBlock == null) return;
         IMAGES type = placedBlock.blockType;
-
+        //Debug.Log($"[{point.x},{point.y}]");
         if (sameCount[0] + sameCount[2] >= 2) 
         {
             Node node = this;
@@ -144,6 +144,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
                 if (node.placedBlock == null) continue;
                 node.DestroyBlockObject();
                 node.InitsameCount();
+                //Debug.Log($"[{point.x},{point.y}]//[{nextNodePoint.x},{nextNodePoint.y}]");
             }
             node = this;
             for (int i = 0; i < sameCount[2]; i++)
@@ -153,6 +154,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
                 if (node.placedBlock == null) continue;
                 node.DestroyBlockObject();
                 node.InitsameCount();
+                //Debug.Log($"[{point.x},{point.y}]//[{nextNodePoint.x},{nextNodePoint.y}]");
             }
         }
         if (sameCount[1] + sameCount[3] >= 2)
@@ -165,6 +167,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
                 if (node.placedBlock == null) continue;
                 node.DestroyBlockObject();
                 node.InitsameCount();
+                //Debug.Log($"[{point.x},{point.y}]//[{nextNodePoint.x},{nextNodePoint.y}]");
             }
             node = this;
             for (int i = 0; i < sameCount[3]; i++)
@@ -174,6 +177,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
                 if (node.placedBlock == null) continue;
                 node.DestroyBlockObject();
                 node.InitsameCount();
+                //Debug.Log($"[{point.x},{point.y}]//[{nextNodePoint.x},{nextNodePoint.y}]");
             }
         }
         

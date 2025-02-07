@@ -32,7 +32,7 @@ public class Block : MonoBehaviour
     }
     public void StartMove()
     {
-        float moveTime = 0.5f;
+        float moveTime = 1000f;
         isMoving = true;
         StartCoroutine(OnDropDownAnimation(target.localPosition, moveTime, EndMove));
     }
@@ -43,22 +43,27 @@ public class Block : MonoBehaviour
         isMoving = false;
     }
 
-    private IEnumerator OnDropDownAnimation(Vector3 end, float time,UnityAction Action)
+    private IEnumerator OnDropDownAnimation(Vector3 end, float speed,UnityAction Action)
     {
-        float current = 0;
-        float percent = 0;
-        Vector3 start = GetComponent<RectTransform>().localPosition;
+        
+        RectTransform rectTransform = GetComponent<RectTransform>();
+        Vector3 start = rectTransform.localPosition;
 
-        while (percent < 1) 
+        float distance = Vector3.Distance(start, end); // 전체 이동 거리
+        float duration = distance / speed; // 이동 시간을 일정 속도로 설정
+        float current = 0f;
+
+        while (current < duration)
         {
             current += Time.deltaTime;
-            percent = current / time;
-
-            transform.localPosition  = Vector3.Lerp(start,end, percent);
-
+            float percent = current / duration;
+            rectTransform.localPosition = Vector3.Lerp(start, end, percent);
             yield return null;
         }
-        if(Action != null) Action.Invoke();
+
+        rectTransform.localPosition = end; // 최종 위치 보정
+
+        Action?.Invoke();
     }
     public void DestroyBlock()
     {
